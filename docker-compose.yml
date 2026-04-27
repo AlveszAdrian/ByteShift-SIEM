@@ -1,0 +1,83 @@
+services:
+  # ── Backend Microservices ──────────────────────────────────────────────────
+  manager:
+    build:
+      context: ./platform
+      dockerfile: Dockerfile.manager
+    ports:
+      - "50051:50051"
+    environment:
+      - INDEXER_URL=http://indexer:8081
+      - PORT=50051
+      - KAFKA_BROKER=kafka:9092
+    networks:
+      - siem-net
+    depends_on:
+      - kafka
+    restart: unless-stopped
+
+  indexer:
+    build:
+      context: ./platform
+      dockerfile: Dockerfile.indexer
+    ports:
+      - "8080:8081"
+    environment:
+      - PORT=8081
+      - DB_HOST=timescaledb
+      - DB_USER=siem
+      - DB_PASS=siem_secure_pass_123
+      - DB_NAME=siem
+    volumes:
+      - ./platform/indexer/rules:/app/indexer/rules
+    networks:
+      - siem-net
+    depends_on:
+      - timescaledb
+    restart: unless-stopped
+
+  # ── Enterprise Data Infrastructure ─────────────────────────────────────────
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    environment:
+      - POSTGRES_USER=siem
+      - POSTGRES_PASSWORD=siem_secure_pass_123
+      - POSTGRES_DB=siem
+    volumes:
+      - siem-pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - siem-net
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka-native:latest
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=3
+    volumes:
+      - siem-kafka-data:/tmp/kraft-combined-logs
+    ports:
+      - "9092:9092"
+    networks:
+      - siem-net
+    restart: unless-stopped
+
+networks:
+  siem-net:
+    driver: bridge
+
+volumes:
+  siem-pg-data:
+  siem-kafka-data:

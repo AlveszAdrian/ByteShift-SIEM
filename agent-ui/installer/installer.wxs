@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="SIEM Agent" Language="1033" Version="4.0.0.0" Manufacturer="SIEM Security"
+             UpgradeCode="a1b2c3d4-e5f6-4a1b-9c8d-7e6f5a4b3c2d">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                      Schedule="afterInstallInitialize" />
+        <MediaTemplate EmbedCab="yes" />
+
+        <!-- User Properties for UI -->
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+        <Property Id="MANAGER_IP" Value="127.0.0.1" />
+
+        <!-- ── Custom UI Sequence ───────────────────────────────────────────────── -->
+        <UI Id="WixUI_Custom">
+            <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+            <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+            <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+            <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+
+            <DialogRef Id="BrowseDlg" />
+            <DialogRef Id="DiskCostDlg" />
+            <DialogRef Id="ErrorDlg" />
+            <DialogRef Id="FatalError" />
+            <DialogRef Id="FilesInUse" />
+            <DialogRef Id="MsiRMFilesInUse" />
+            <DialogRef Id="PrepareDlg" />
+            <DialogRef Id="ProgressDlg" />
+            <DialogRef Id="ResumeDlg" />
+            <DialogRef Id="UserExit" />
+
+            <!-- Welcome Dialog -->
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+
+            <!-- Install Directory Dialog -->
+            <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ManagerIPDlg" Order="2">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+
+            <!-- Manager IP Dialog -->
+            <Dialog Id="ManagerIPDlg" Width="370" Height="270" Title="[ProductName] Setup - Manager Connection">
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+                    <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+                </Control>
+                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+                    <Publish Event="NewDialog" Value="InstallDirDlg">1</Publish>
+                </Control>
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+                    <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+                </Control>
+
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Enter the SIEM Manager Connection Details" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Manager Settings" />
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+                <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+                
+                <Control Id="ManagerIPLabel" Type="Text" X="20" Y="60" Width="290" Height="20" Text="Please enter the IP address of the SIEM Manager:" />
+                <Control Id="ManagerIPEdit" Type="Edit" X="20" Y="80" Width="150" Height="18" Property="MANAGER_IP" />
+                
+                <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+            </Dialog>
+
+            <!-- Verify Ready Dialog -->
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ManagerIPDlg" Order="1">NOT Installed</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
+
+            <!-- Maintenance/Exit -->
+            <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+            
+            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+        </UI>
+
+        <UIRef Id="WixUI_Common" />
+        <!-- ── /Custom UI Sequence ──────────────────────────────────────────────── -->
+
+        <Feature Id="ProductFeature" Title="SIEM Agent" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentRef Id="DesktopShortcut" />
+            <ComponentRef Id="StartMenuShortcut" />
+            <ComponentRef Id="AutoStartRegistry" />
+        </Feature>
+    </Product>
+
+    <!-- Directory Layout -->
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="LocalAppDataFolder">
+                <Directory Id="LocalProgramsFolder" Name="Programs">
+                    <Directory Id="INSTALLFOLDER" Name="SIEM Agent" />
+                </Directory>
+            </Directory>
+            <Directory Id="DesktopFolder" Name="Desktop" />
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="SIEM Agent" />
+            </Directory>
+        </Directory>
+    </Fragment>
+
+    <!-- Main Files & Registry Settings -->
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <!-- Save Manager IP to Registry for Agent GUI -->
+            <Component Id="RegistrySettings" Guid="c3d4e5f6-a1b2-4c3d-9e0f-1a2b3c4d5e6f">
+                <RegistryKey Root="HKCU" Key="Software\SIEMAgent">
+                    <RegistryValue Name="ManagerIP" Type="string" Value="[MANAGER_IP]" KeyPath="yes" />
+                </RegistryKey>
+            </Component>
+
+            <Component Id="MainExecutable" Guid="b2c3d4e5-f6a1-4b2c-8d9e-0f1a2b3c4d5e">
+                <File Id="AgentExe" Name="agent-ui.exe" Source="..\build\bin\agent-ui.exe" KeyPath="yes" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+
+    <!-- Desktop Shortcut -->
+    <Fragment>
+        <DirectoryRef Id="DesktopFolder">
+            <Component Id="DesktopShortcut" Guid="11111111-2222-3333-4444-555555555555">
+                <Shortcut Id="DesktopShortcutLink"
+                          Name="SIEM Agent"
+                          Description="Configure SIEM Security Agent"
+                          Target="[#AgentExe]"
+                          WorkingDirectory="INSTALLFOLDER" />
+                <RegistryValue Root="HKCU" Key="Software\SIEMAgent" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+
+    <!-- Start Menu Shortcut -->
+    <Fragment>
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="StartMenuShortcut" Guid="66666666-7777-8888-9999-aaaaaaaaaaaa">
+                <Shortcut Id="StartMenuShortcutLink"
+                          Name="SIEM Agent"
+                          Description="Configure SIEM Security Agent"
+                          Target="[#AgentExe]"
+                          WorkingDirectory="INSTALLFOLDER" />
+                <RemoveFolder Id="CleanUpStartMenu" Directory="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\SIEMAgent" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+
+    <!-- Auto-Start on Login (HKCU) -->
+    <Fragment>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="AutoStartRegistry" Guid="bbbbbbbb-cccc-dddd-eeee-ffffffffffff">
+                <RegistryValue Root="HKCU"
+                               Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+                               Name="SIEMAgent"
+                               Type="string"
+                               Value="&quot;[#AgentExe]&quot;"
+                               KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+
+    <!-- Launch Agent after install -->
+    <Fragment>
+        <CustomAction Id="LaunchAgent"
+                      FileKey="AgentExe"
+                      ExeCommand=""
+                      Execute="deferred"
+                      Return="asyncNoWait"
+                      Impersonate="yes" />
+
+        <InstallExecuteSequence>
+            <Custom Action="LaunchAgent" Before="InstallFinalize">NOT Installed</Custom>
+        </InstallExecuteSequence>
+    </Fragment>
+</Wix>

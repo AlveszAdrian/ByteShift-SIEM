@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.exe
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Installer artifacts
+*.msi
+*.wixobj
+*.wixpdb
+wix.zip
+
+# Docker
+docker-compose.override.yml
+
+# Environment
+.env
+.env.local

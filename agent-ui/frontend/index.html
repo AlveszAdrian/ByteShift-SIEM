@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SIEM Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/app.css">
+</head>
+<body>
+<div class="shell">
+    <!-- Sidebar -->
+    <aside class="sidebar glass">
+        <div class="logo">
+            <div class="pulse-ring"></div>
+            <div class="logo-icon">⬡</div>
+            <div>
+                <div class="logo-title">SIEM Agent</div>
+                <div class="logo-sub">v2.0 · GUI Edition</div>
+            </div>
+        </div>
+
+        <div class="status-panel glass-inner">
+            <div class="status-row">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">Disconnected</span>
+            </div>
+            <div class="status-detail" id="statusDetail">Not connected to Manager</div>
+        </div>
+
+        <nav>
+            <a class="nav-item active" onclick="showSection('config', this)">⚙ Configuration</a>
+            <a class="nav-item" onclick="showSection('sources', this)">📂 Log Sources</a>
+            <a class="nav-item" onclick="showSection('status', this)">📊 Live Status</a>
+        </nav>
+    </aside>
+
+    <!-- Main Area -->
+    <main class="main-area">
+        <!-- Config Section -->
+        <section id="sec-config" class="section active">
+            <div class="section-header">
+                <h2>Manager Connection</h2>
+                <p class="muted">Set the IP address and port of the SIEM Manager the agent should connect to via gRPC.</p>
+            </div>
+            <div class="card glass">
+                <label class="field-label">Manager IP Address</label>
+                <input type="text" id="managerIp" class="field-input" placeholder="e.g. 192.168.1.100 or localhost">
+
+                <label class="field-label mt">Manager Port (gRPC)</label>
+                <input type="number" id="managerPort" class="field-input" value="50051" placeholder="50051">
+
+                <div class="action-row">
+                    <button class="btn-primary" onclick="saveAndConnect()">💾 Save & Connect</button>
+                    <span class="save-msg" id="saveMsg"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Log Sources Section -->
+        <section id="sec-sources" class="section">
+            <div class="section-header">
+                <h2>Log Sources</h2>
+                <p class="muted">Manage which files, Windows Event Log channels, and UDP Syslog ports should be monitored.</p>
+            </div>
+
+            <!-- File Paths -->
+            <div class="card glass">
+                <div class="card-title">📄 File Paths (Tail)</div>
+                <p class="muted small">Add full paths to log files to monitor. New lines will be picked up in real-time.</p>
+                <div id="filePathsList" class="tag-list"></div>
+                <div class="add-row">
+                    <input type="text" id="newFilePath" class="field-input" placeholder="C:\logs\app.log or /var/log/auth.log">
+                    <button class="btn-secondary" onclick="addFilePath()">+ Add Path</button>
+                </div>
+            </div>
+
+            <!-- Windows Events -->
+            <div class="card glass mt">
+                <div class="card-title">🪟 Windows Event Log Channels</div>
+                <p class="muted small">Specify Event Log channels to poll (e.g. System, Application, Security).</p>
+                <div id="winEventsList" class="tag-list"></div>
+                <div class="add-row">
+                    <input type="text" id="newWinEvent" class="field-input" placeholder="e.g. Security">
+                    <button class="btn-secondary" onclick="addWinEvent()">+ Add Channel</button>
+                </div>
+            </div>
+
+            <!-- Syslog Port -->
+            <div class="card glass mt">
+                <div class="card-title">📡 Syslog UDP Listener</div>
+                <p class="muted small">Open a UDP port to receive Syslog from routers, firewalls, and other devices.</p>
+                <div class="add-row">
+                    <input type="number" id="syslogPort" class="field-input" placeholder="e.g. 514 (0 to disable)">
+                    <span class="muted small">Port 0 = disabled</span>
+                </div>
+            </div>
+
+            <div class="action-row mt">
+                <button class="btn-primary" onclick="saveAndConnect()">💾 Apply Sources & Restart</button>
+                <span class="save-msg" id="saveMsgSources"></span>
+            </div>
+        </section>
+
+        <!-- Live Status Section -->
+        <section id="sec-status" class="section">
+            <div class="section-header">
+                <h2>Live Status</h2>
+                <p class="muted">Real-time information about what is being collected.</p>
+            </div>
+            <div id="statusCards" class="stats-grid">
+                <div class="stat-card glass">
+                    <div class="stat-label">Manager IP</div>
+                    <div class="stat-val" id="statManager">—</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-label">File Watchers</div>
+                    <div class="stat-val" id="statFiles">0</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-label">Win Event Channels</div>
+                    <div class="stat-val" id="statWin">0</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-label">Syslog UDP Port</div>
+                    <div class="stat-val" id="statSyslog">Off</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/wailsjs/runtime/runtime.js"></script>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

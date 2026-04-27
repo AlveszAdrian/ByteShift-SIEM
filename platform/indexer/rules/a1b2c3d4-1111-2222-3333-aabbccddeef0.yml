@@ -1,0 +1,32 @@
+title: Supply Chain — Unsigned DLL Loaded by Trusted Process
+id: a1b2c3d4-1111-2222-3333-aabbccddeef0
+status: experimental
+description: |
+  Detecta carga de DLL não assinada por processos de build,
+  atualização ou runtime — padrão comum em supply chain attacks.
+references:
+  - https://attack.mitre.org/techniques/T1195/002/
+author: blue-team
+date: 2024-01-01
+tags:
+  - attack.initial_access
+  - attack.t1195.002
+logsource:
+  category: image_load
+  product: windows
+detection:
+  selection_proc:
+    Image|endswith:
+      - '\msbuild.exe'
+      - '\msiexec.exe'
+      - '\svchost.exe'
+      - '\node.exe'
+      - '\python.exe'
+      - '\git.exe'
+      - '\npm.cmd'
+  filter_signed:
+    Signed: true
+  condition: selection_proc and not filter_signed
+falsepositives:
+  - Plugins/extensões de dev legítimos não assinados
+level: critical

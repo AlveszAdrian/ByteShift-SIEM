@@ -1,0 +1,36 @@
+title: Supply Chain — Package Manager Unexpected Network
+id: d4e5f6a7-4444-5555-6666-ddeeff001133
+status: experimental
+description: |
+  pip/npm/nuget/gem estabelecendo conexões de rede para
+  destinos fora de registries oficiais. Cobre typosquatting
+  e dependency confusion (CVE-2021-xxx / PyPI malware).
+tags:
+  - attack.initial_access
+  - attack.exfiltration
+  - attack.t1195.001
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_image:
+    Image|endswith:
+      - '\pip.exe'
+      - '\pip3.exe'
+      - '\npm.cmd'
+      - '\node.exe'
+      - '\nuget.exe'
+      - '\gem.bat'
+      - '\cargo.exe'
+  filter_legit:
+    DestinationHostname|contains:
+      - 'pypi.org'
+      - 'npmjs.com'
+      - 'nuget.org'
+      - 'rubygems.org'
+      - 'crates.io'
+      - 'pkg.go.dev'
+  condition: selection_image and not filter_legit
+falsepositives:
+  - Mirrors internos e repositórios privados — adicionar ao filtro
+level: medium

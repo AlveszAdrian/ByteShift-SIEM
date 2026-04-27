@@ -1,0 +1,10 @@
+{
+  "manager_ip": "localhost:50051",
+  "file_paths": [],
+  "syslog_port": 0,
+  "win_events": [
+    "System",
+    "Application",
+    "Security"
+  ]
+}

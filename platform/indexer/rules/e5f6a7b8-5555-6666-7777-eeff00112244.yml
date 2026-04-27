@@ -1,0 +1,34 @@
+title: Supply Chain — CI Runner Executing Recon Commands
+id: e5f6a7b8-5555-6666-7777-eeff00112244
+status: experimental
+description: |
+  Agentes CI/CD (GitHub Actions runner, Jenkins agent,
+  TeamCity agent) gerando ferramentas de reconhecimento.
+  Padrão do ataque Codecov e envenenamento de Actions.
+tags:
+  - attack.discovery
+  - attack.t1082
+  - attack.t1195.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_runner:
+    ParentImage|contains:
+      - 'Runner.Listener'
+      - 'jenkins'
+      - 'teamcity'
+      - 'buildagent'
+      - 'gitlab-runner'
+  selection_recon:
+    Image|endswith:
+      - '\whoami.exe'
+      - '\net.exe'
+      - '\ipconfig.exe'
+      - '\nltest.exe'
+      - '\reg.exe'
+      - '\systeminfo.exe'
+  condition: selection_runner and selection_recon
+falsepositives:
+  - Pipelines de inventário/diagnóstico explicitamente autorizados
+level: high

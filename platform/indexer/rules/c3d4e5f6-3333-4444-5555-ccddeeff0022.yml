@@ -1,0 +1,32 @@
+title: Supply Chain — Updater Executes Unsigned Binary
+id: c3d4e5f6-3333-4444-5555-ccddeeff0022
+status: experimental
+description: |
+  Mecanismos de atualização de software executando binários
+  sem assinatura digital válida — padrão do SolarWinds,
+  Asus Live Update e similares.
+tags:
+  - attack.initial_access
+  - attack.t1195.002
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_updater:
+    ParentImage|contains:
+      - 'update'
+      - 'updater'
+      - 'autoupdate'
+      - 'patch'
+  filter_signed:
+    IntegrityLevel: 'System'
+    Signed: true
+  selection_susp_path:
+    Image|contains:
+      - '\Temp\'
+      - '\AppData\Local\'
+      - '\ProgramData\'
+  condition: selection_updater and selection_susp_path and not filter_signed
+falsepositives:
+  - Instaladores legítimos que extraem para Temp antes de executar
+level: high

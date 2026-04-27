@@ -1,0 +1,24 @@
+{
+  "name": "siem-platform",
+  "version": "1.0.0",
+  "description": "SIEM Platform: gRPC Manager + REST Indexer + Dashboard",
+  "main": "indexer/index.js",
+  "type": "module",
+  "scripts": {
+    "manager": "node manager/index.js",
+    "indexer": "node indexer/index.js",
+    "dev:manager": "node --watch manager/index.js",
+    "dev:indexer": "node --watch indexer/index.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.6",
+    "@grpc/proto-loader": "^0.7.15",
+    "chokidar": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.1",
+    "kafkajs": "^2.2.4",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.20.0"
+  }
+}

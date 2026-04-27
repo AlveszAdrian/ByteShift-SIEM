@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package siem.events;
+
+option go_package = "siem/proto";
+
+// EventMessage represents a single log entry from an agent
+message EventMessage {
+  // Agent identifier (e.g., hostname or UUID)
+  string agent_id = 1;
+  // Originating operating system (e.g., "windows", "linux")
+  string os = 2;
+  // Type of the log (e.g., "syslog", "auth", "wineventlog")
+  string log_type = 3;
+  // Severity level (e.g., "info", "warning", "error", "critical")
+  string severity = 4;
+  // The actual log content
+  string message = 5;
+  // Unix timestamp of when the event occurred
+  int64 timestamp = 6;
+  // Additional JSON-encoded metadata if needed
+  string metadata = 7;
+}
+
+message EventAck {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message AgentInfo {
+  string agent_id = 1;
+  string os = 2;
+  string ip_address = 3;
+  string hostname = 4;
+  int64 uptime = 5;
+  string version = 6;
+  string active_collectors = 7; // JSON string describing what is being collected
+}
+
+// EventService is the gRPC service exposed by the Manager
+service EventService {
+  // SendEvent allows an agent to send a single event
+  rpc SendEvent(EventMessage) returns (EventAck);
+  
+  // StreamEvents allows an agent to stream multiple events continuously
+  rpc StreamEvents(stream EventMessage) returns (EventAck);
+
+  // Heartbeat allows an agent to report its status and configuration
+  rpc Heartbeat(AgentInfo) returns (EventAck);
+}
